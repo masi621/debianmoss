@@ -42,10 +42,6 @@ lvm2
 mdadm
 mtools
 efibootmgr
-# Keep the live rootfs bootloader-neutral. The *-bin packages can coexist,
-# while the full grub-pc and grub-efi-amd64 metapackages conflict.
-grub-pc-bin
-grub-efi-amd64-bin
 os-prober
 xdg-user-dirs
 fonts-dejavu-core
