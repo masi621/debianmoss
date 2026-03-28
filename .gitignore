@@ -1,0 +1,17 @@
+*.iso
+*.hybrid.iso
+binary*
+cache/
+chroot/
+local.chroot
+config/binary
+config/bootstrap
+config/chroot
+config/common
+.build/
+__pycache__/
+*.pyc
+
+.build/
+__pycache__/
+*.pyc

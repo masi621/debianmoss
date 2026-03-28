@@ -1,0 +1,8 @@
+DebianMOSS 1.0
+low light / bright code / damp terminals
+
+- peat-dark desktop with phosphor-green accents
+- Debian Bookworm base with a dev-first XFCE session
+- apt for system packages
+- mosspkg for source and GitHub installs
+- mossdev for scaffolding

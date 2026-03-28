@@ -1,0 +1,15 @@
+#!/bin/bash
+set -Eeuo pipefail
+install -d /etc/sudoers.d
+cat > /etc/sudoers.d/90-live-moss <<'EOT'
+moss ALL=(ALL) NOPASSWD:ALL
+EOT
+chmod 0440 /etc/sudoers.d/90-live-moss
+install -d /etc/lightdm/lightdm.conf.d
+cat > /etc/lightdm/lightdm.conf.d/50-debianmoss-live.conf <<'EOT'
+[Seat:*]
+autologin-user=moss
+autologin-session=debianmoss
+user-session=debianmoss
+greeter-session=lightdm-gtk-greeter
+EOT

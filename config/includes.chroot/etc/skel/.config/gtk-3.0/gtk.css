@@ -1,0 +1,69 @@
+@define-color moss_bg #0b120f;
+@define-color moss_panel #101914;
+@define-color moss_card #16211c;
+@define-color moss_line #2d4638;
+@define-color moss_text #eaf7de;
+@define-color moss_muted #9cb69f;
+@define-color moss_accent #7cff76;
+@define-color moss_accent_deep #2f7f59;
+
+window.background,
+dialog.background,
+messagedialog.background,
+popover.background {
+  background-image: none;
+  background-color: @moss_bg;
+  color: @moss_text;
+}
+
+headerbar,
+.titlebar,
+stacksidebar.sidebar {
+  background-image: none;
+  background-color: @moss_panel;
+  color: @moss_text;
+  border-bottom: 1px solid alpha(@moss_accent, 0.18);
+}
+
+button {
+  background-image: none;
+  background-color: @moss_card;
+  color: @moss_text;
+  border: 1px solid alpha(@moss_accent, 0.18);
+  box-shadow: none;
+}
+
+button:hover {
+  background-color: shade(@moss_card, 1.14);
+  border-color: alpha(@moss_accent, 0.56);
+}
+
+button:active,
+button:checked,
+button.suggested-action {
+  background-color: @moss_accent_deep;
+  color: #f8fff3;
+  border-color: @moss_accent;
+}
+
+entry,
+textview,
+treeview.view,
+placessidebar,
+notebook > header {
+  background-image: none;
+  background-color: @moss_panel;
+  color: @moss_text;
+  border-color: @moss_line;
+}
+
+selection,
+*:selected {
+  background-color: @moss_accent_deep;
+  color: #f6fff2;
+}
+
+label.dim-label,
+.dim-label {
+  color: @moss_muted;
+}

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+SESSION_FILE="$HOME/.config/debianmoss/session"
+/usr/local/bin/moss-set-wallpaper >/dev/null 2>&1 || true
+(
+  sleep 3
+  /usr/local/bin/moss-set-wallpaper >/dev/null 2>&1 || true
+) &
+if [[ -f "$SESSION_FILE" ]]; then
+  session_cmd="$(tr -d '\r' < "$SESSION_FILE")"
+  if [[ -n "$session_cmd" ]]; then
+    exec bash -lc "$session_cmd"
+  fi
+fi
+exec startxfce4

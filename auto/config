@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+cat <<'EOF'
+DebianMOSS now builds natively on Arch and Debian hosts without Debian live-build.
+Use:
+  sudo ./build.sh
+or on Arch first:
+  ./scripts/install-host-deps-arch.sh
+EOF

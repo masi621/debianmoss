@@ -1,0 +1,52 @@
+#!/bin/bash
+set -Eeuo pipefail
+
+PLY_DIR=/usr/share/plymouth/themes/debianmoss
+GRUB_DIR=/boot/grub/themes/debianmoss
+LOGO_SRC=/opt/debianmoss-assets/newLOGO.png
+# DebianMOSS canonical wallpaper. NEVER replace or modify tiles.png in place;
+# add a new file and repoint defaults explicitly if the wallpaper ever changes.
+WALL_SRC=/opt/debianmoss-assets/tiles.png
+EMERALD_DIR=/usr/share/plymouth/themes/emerald
+
+install -d "$PLY_DIR" "$GRUB_DIR"
+
+[[ -f "$LOGO_SRC" ]] || { echo "Missing DebianMOSS boot logo: $LOGO_SRC" >&2; exit 1; }
+[[ -f "$WALL_SRC" ]] || { echo "Missing DebianMOSS GRUB background: $WALL_SRC" >&2; exit 1; }
+[[ -d "$EMERALD_DIR" ]] || { echo "Missing Plymouth emerald theme directory: $EMERALD_DIR" >&2; exit 1; }
+
+install -m 644 "$LOGO_SRC" "$PLY_DIR/newlogo.png"
+install -m 644 "$LOGO_SRC" "$GRUB_DIR/newlogo.png"
+
+install -m 644 "$WALL_SRC" "$GRUB_DIR/background.png"
+
+for asset in password_dot.png password_field.png; do
+  [[ -f "$EMERALD_DIR/$asset" ]] || { echo "Missing Plymouth asset: $EMERALD_DIR/$asset" >&2; exit 1; }
+  install -m 644 "$EMERALD_DIR/$asset" "$PLY_DIR/$asset"
+done
+
+[[ -f "$EMERALD_DIR/emerald.script" ]] || { echo "Missing Plymouth base script: $EMERALD_DIR/emerald.script" >&2; exit 1; }
+install -m 644 "$EMERALD_DIR/emerald.script" "$PLY_DIR/debianmoss.script"
+sed -i \
+  -e 's/^LOGO_CENTER_PCT.y = .*/LOGO_CENTER_PCT.y = 0.46;/' \
+  -e 's/^LOGO_SIZE_PCT = .*/LOGO_SIZE_PCT = 0.34;/' \
+  -e 's/^LOGO_GLOW_SIZE_PCT = .*/LOGO_GLOW_SIZE_PCT = 0.38;/' \
+  -e 's/^logo_pos.x = .*/logo_pos.x = logo_center.x - logo_size\/2;/' \
+  -e 's/^logo = Image("logo+emerald.png");/logo = Image("newlogo.png");/' \
+  -e 's/^logo_glow_pos.y = .*/logo_glow_pos.y = logo_center.y - logo_glow.GetHeight() \/ 2;/' \
+  -e 's/^Window.SetBackgroundTopColor .*/Window.SetBackgroundTopColor (0.035, 0.067, 0.055);/' \
+  -e 's/^Window.SetBackgroundBottomColor .*/Window.SetBackgroundBottomColor (0.071, 0.118, 0.094);/' \
+  -e 's/^text_colour.red = .*/text_colour.red = 0.92;/' \
+  -e 's/^text_colour.green = .*/text_colour.green = 0.97;/' \
+  -e 's/^text_colour.blue = .*/text_colour.blue = 0.89;/' \
+  -e 's/^tinted_text_colour.red = .*/tinted_text_colour.red = 0.71;/' \
+  -e 's/^tinted_text_colour.green = .*/tinted_text_colour.green = 0.84;/' \
+  -e 's/^tinted_text_colour.blue = .*/tinted_text_colour.blue = 0.72;/' \
+  -e 's/^action_text_colour.red = .*/action_text_colour.red = 0.49;/' \
+  -e 's/^action_text_colour.green = .*/action_text_colour.green = 1.0;/' \
+  -e 's/^action_text_colour.blue = .*/action_text_colour.blue = 0.47;/' \
+  "$PLY_DIR/debianmoss.script"
+
+if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+  plymouth-set-default-theme debianmoss || true
+fi

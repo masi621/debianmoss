@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=DebianMOSS
+Description=DebianMOSS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/debianmoss
+ScriptFile=/usr/share/plymouth/themes/debianmoss/debianmoss.script

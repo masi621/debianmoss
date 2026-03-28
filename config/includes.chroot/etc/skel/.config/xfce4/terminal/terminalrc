@@ -1,0 +1,17 @@
+[Configuration]
+FontName=Fira Code 10
+ColorForeground=#EAF7DE
+ColorBackground=#08100D
+ColorCursor=#7CFF76
+ColorSelection=#2F7F59
+ColorSelectionUseDefault=FALSE
+ColorBold=#F8FFF3
+ColorBoldUseDefault=FALSE
+ColorPalette=#08100D;#E05F65;#7DD76F;#D6B86E;#5FA8FF;#B084F8;#62C9B7;#EAF7DE;#223029;#FF7A7A;#9CF58B;#E8D07D;#85BEFF;#CAA3FF;#83E6D7;#FFFFFF
+MiscAlwaysShowTabs=FALSE
+MiscBell=FALSE
+MiscCursorBlinks=FALSE
+MiscDefaultGeometry=118x32
+MiscMenubarDefault=FALSE
+MiscToolbarDefault=FALSE
+ScrollingUnlimited=TRUE

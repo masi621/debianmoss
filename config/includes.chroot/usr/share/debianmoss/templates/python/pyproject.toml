@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "__APP_NAME__"
+version = "0.1.0"
+description = "DebianMOSS Python app"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[project.scripts]
+__APP_NAME__ = "__APP_NAME__:main"

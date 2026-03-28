@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+TEMPLATES=/usr/share/debianmoss/templates
+usage() {
+  cat <<'EOT'
+Usage:
+  mossdev new c NAME
+  mossdev new cpp NAME
+  mossdev new python NAME
+  mossdev new rust NAME
+  mossdev new go NAME
+  mossdev new wm NAME
+EOT
+}
+[[ "${1:-}" == "new" ]] || { usage >&2; exit 1; }
+lang="${2:-}"; name="${3:-}"
+[[ -n "$lang" && -n "$name" ]] || { usage >&2; exit 1; }
+case "$lang" in c|cpp|python|rust|go|wm) ;; *) usage >&2; exit 1 ;; esac
+src="$TEMPLATES/$lang"; dst="./$name"
+[[ -d "$src" ]] || { echo "Missing template directory: $src" >&2; exit 1; }
+[[ -d "$dst" ]] && { echo "Refusing to overwrite existing directory: $dst" >&2; exit 1; }
+cp -a "$src" "$dst"
+find "$dst" -type f -print0 | while IFS= read -r -d '' f; do sed -i "s/__APP_NAME__/$name/g" "$f" || true; done
+find "$dst" -type f \( -name '*.sh' -o -name '*.py' \) -exec chmod +x {} +
+echo "Created $lang project in $dst"

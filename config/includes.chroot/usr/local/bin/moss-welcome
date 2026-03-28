@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if [[ -t 1 ]]; then
+  c_reset=$'\033[0m'
+  c_moss=$'\033[38;5;84m'
+  c_leaf=$'\033[38;5;151m'
+  c_peat=$'\033[38;5;65m'
+  c_amber=$'\033[38;5;179m'
+  c_text=$'\033[38;5;230m'
+else
+  c_reset=''
+  c_moss=''
+  c_leaf=''
+  c_peat=''
+  c_amber=''
+  c_text=''
+fi
+
+cat <<EOF
+${c_moss}debianmoss 1.0${c_reset}
+${c_peat}low light / bright code / damp terminals${c_reset}
+
+${c_text}toolbelt${c_reset}
+  ${c_amber}apt${c_reset}         system packages
+  ${c_amber}mosspkg${c_reset}     source and GitHub installs
+  ${c_amber}mossdev${c_reset}     project scaffolding
+  ${c_amber}moss-session${c_reset} session switching
+
+${c_text}first moves${c_reset}
+  ${c_leaf}sudo apt update${c_reset}
+  ${c_leaf}mossdev new rust fern${c_reset}
+  ${c_leaf}mossdev new python bogwatch${c_reset}
+  ${c_leaf}mosspkg install https://github.com/sharkdp/bat${c_reset}
+  ${c_leaf}moss-session use openbox${c_reset}
+
+${c_text}paths${c_reset}
+  ${c_amber}assets${c_reset}   /usr/share/debianmoss
+  ${c_amber}wall${c_reset}     ${MOSS_WALLPAPER:-/usr/share/backgrounds/debianmoss/tiles.png}
+  ${c_amber}session${c_reset}  \$HOME/.config/debianmoss/session
+EOF

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Moss Field Guide
+Comment=Open the DebianMOSS field guide
+Exec=xfce4-terminal --title=DebianMOSS --hold -e /usr/local/bin/moss-welcome
+Icon=/usr/share/pixmaps/debianmoss-logo.png
+Terminal=false
+Categories=System;Utility;
+StartupNotify=true

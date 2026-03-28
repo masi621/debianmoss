@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+WALL="${1:-${MOSS_WALLPAPER:-/usr/share/backgrounds/debianmoss/tiles.png}}"
+if [[ ! -f "$WALL" && -f /usr/share/backgrounds/debianmoss/tiles.png ]]; then
+  WALL=/usr/share/backgrounds/debianmoss/tiles.png
+fi
+[[ -f "$WALL" ]] || exit 0
+if command -v xfconf-query >/dev/null 2>&1; then
+  mapfile -t image_props < <(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep '/last-image$' || true)
+  mapfile -t style_props < <(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep '/image-style$' || true)
+  if [[ ${#image_props[@]} -eq 0 ]]; then
+    image_props=(/backdrop/screen0/monitor0/workspace0/last-image)
+  fi
+  if [[ ${#style_props[@]} -eq 0 ]]; then
+    style_props=(/backdrop/screen0/monitor0/workspace0/image-style)
+  fi
+  for prop in "${image_props[@]}"; do
+    xfconf-query -c xfce4-desktop -p "$prop" -n -t string -s "$WALL" >/dev/null 2>&1 || \
+      xfconf-query -c xfce4-desktop -p "$prop" -s "$WALL" >/dev/null 2>&1 || true
+  done
+  for prop in "${style_props[@]}"; do
+    xfconf-query -c xfce4-desktop -p "$prop" -n -t int -s 5 >/dev/null 2>&1 || \
+      xfconf-query -c xfce4-desktop -p "$prop" -s 5 >/dev/null 2>&1 || true
+  done
+fi
+if command -v feh >/dev/null 2>&1; then feh --bg-fill "$WALL" >/dev/null 2>&1 || true; fi

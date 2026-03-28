@@ -1,0 +1,18 @@
+#!/bin/bash
+set -Eeuo pipefail
+install -d /usr/share/backgrounds/debianmoss /usr/share/pixmaps /usr/share/debianmoss
+# DebianMOSS canonical wallpaper. NEVER replace or modify tiles.png in place;
+# add a new file and repoint defaults explicitly if the wallpaper ever changes.
+if [ -f /opt/debianmoss-assets/tiles.png ]; then
+  install -m 644 /opt/debianmoss-assets/tiles.png /usr/share/backgrounds/debianmoss/tiles.png
+  ln -sf tiles.png /usr/share/backgrounds/debianmoss/wall-green.png
+fi
+if [ -f /opt/debianmoss-assets/wall-green.svg ]; then
+  install -m 644 /opt/debianmoss-assets/wall-green.svg /usr/share/backgrounds/debianmoss/wall-green.svg
+fi
+if [ -f /opt/debianmoss-assets/newLOGO.png ]; then
+  install -m 644 /opt/debianmoss-assets/newLOGO.png /usr/share/pixmaps/debianmoss-logo.png
+fi
+if [ -f /opt/debianmoss-assets/ascii_art.json ]; then
+  install -m 644 /opt/debianmoss-assets/ascii_art.json /usr/share/debianmoss/ascii_art.json
+fi

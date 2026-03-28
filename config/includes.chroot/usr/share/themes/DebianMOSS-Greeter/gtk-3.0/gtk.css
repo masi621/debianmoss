@@ -1,0 +1,171 @@
+@import url("resource:///org/gnome/arc-theme/gtk-main-dark.css");
+
+@define-color moss_bg #08100d;
+@define-color moss_panel #0d1511;
+@define-color moss_card #101a15;
+@define-color moss_card_soft #13201a;
+@define-color moss_line #294036;
+@define-color moss_text #eef7e5;
+@define-color moss_muted #9bb59a;
+@define-color moss_accent #7cff76;
+@define-color moss_accent_deep #2b6f4c;
+@define-color moss_warn #d3bc72;
+
+.lightdm-gtk-greeter {
+  background-color: transparent;
+  color: @moss_text;
+}
+
+#panel_window {
+  background-color: alpha(@moss_bg, 0.86);
+  color: @moss_text;
+  border-top: 1px solid alpha(@moss_accent, 0.14);
+  box-shadow: inset 0 1px alpha(white, 0.03);
+}
+
+#panel_window .menubar,
+#panel_window .menubar > .menuitem {
+  background-color: transparent;
+  color: @moss_text;
+  text-shadow: none;
+  icon-shadow: none;
+}
+
+#panel_window .menubar > .menuitem:hover,
+#panel_window .menubar > .menuitem:selected {
+  background-color: alpha(@moss_accent, 0.12);
+  color: @moss_text;
+}
+
+#panel_window .menu {
+  background-color: alpha(@moss_panel, 0.97);
+  border: 1px solid alpha(@moss_accent, 0.16);
+  border-radius: 12px;
+}
+
+#panel_window .menu .menuitem {
+  color: @moss_text;
+}
+
+#panel_window .menu .menuitem:hover {
+  background-color: alpha(@moss_accent, 0.12);
+}
+
+#login_window,
+#shutdown_dialog,
+#restart_dialog {
+  border-style: none;
+  border-radius: 20px;
+  background-color: alpha(@moss_card, 0.94);
+  color: @moss_text;
+  box-shadow: 0 24px 48px alpha(black, 0.42),
+              inset 0 0 0 1px alpha(@moss_accent, 0.15),
+              inset 0 1px alpha(white, 0.04);
+}
+
+#content_frame {
+  padding-bottom: 18px;
+}
+
+#login_window #user_combobox {
+  color: @moss_text;
+  font: 600 16px "Noto Sans";
+}
+
+#login_window #user_combobox .arrow {
+  color: @moss_accent;
+}
+
+#login_window .entry {
+  padding: 8px 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: @moss_line;
+  border-radius: 12px;
+  background-image: none;
+  background-color: alpha(@moss_bg, 0.78);
+  color: @moss_text;
+  box-shadow: none;
+}
+
+#login_window .entry:hover,
+#login_window .entry:focus {
+  border-color: alpha(@moss_accent, 0.66);
+  box-shadow: 0 0 0 2px alpha(@moss_accent, 0.12);
+}
+
+#user_image_border {
+  border-radius: 18px;
+  background-image: none;
+  background-color: alpha(@moss_bg, 0.45);
+  box-shadow: inset 0 0 0 1px alpha(@moss_accent, 0.15);
+}
+
+#user_image {
+  padding: 10px;
+}
+
+#buttonbox_frame,
+#power_buttonbox_frame {
+  border-style: none;
+  background-image: none;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+#login_window .button,
+#shutdown_dialog .button,
+#restart_dialog .button {
+  padding: 8px 18px;
+  border-radius: 999px;
+  background-image: none;
+  background-color: @moss_card_soft;
+  border: 1px solid alpha(@moss_accent, 0.18);
+  color: @moss_text;
+  box-shadow: none;
+}
+
+#login_window .button:hover,
+#shutdown_dialog .button:hover,
+#restart_dialog .button:hover {
+  background-color: shade(@moss_card_soft, 1.10);
+  border-color: alpha(@moss_accent, 0.36);
+}
+
+#login_window .button.default,
+#login_window .button:focus,
+#login_window .button:active:focus,
+#shutdown_dialog .button.default,
+#shutdown_dialog .button:focus,
+#restart_dialog .button.default,
+#restart_dialog .button:focus {
+  background-image: none;
+  background-color: @moss_accent_deep;
+  border-color: @moss_accent;
+  color: #f7fff3;
+}
+
+#shutdown_button.button {
+  background-image: none;
+  background-color: alpha(@moss_warn, 0.15);
+  border-color: alpha(@moss_warn, 0.35);
+  color: @moss_text;
+}
+
+#restart_button.button {
+  background-image: none;
+  background-color: alpha(@moss_accent_deep, 0.75);
+  border-color: alpha(@moss_accent, 0.5);
+  color: #f7fff3;
+}
+
+#greeter_infobar {
+  background-color: alpha(@moss_accent_deep, 0.16);
+  color: @moss_text;
+  border-radius: 12px;
+  border: 1px solid alpha(@moss_accent, 0.18);
+}
+
+#greeter_infobar label {
+  color: @moss_text;
+}

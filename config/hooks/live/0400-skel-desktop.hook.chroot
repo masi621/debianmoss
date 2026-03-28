@@ -1,0 +1,12 @@
+#!/bin/bash
+set -Eeuo pipefail
+install -d /etc/skel/Desktop
+if [ -d /etc/skel/Desktop ]; then
+  find /etc/skel/Desktop -maxdepth 1 \( -type f -o -type l \) -name '*.desktop' | while read -r f; do
+    if grep -Eq '(^Exec=.*calamares|^Exec=.*install-debian|^Exec=.*/usr/local/bin/moss-installer|^Name=.*Install Debian|^Name=.*Debian GNU/Linux Installer)' "$f"; then
+      rm -f "$f"
+    fi
+  done
+fi
+rm -f /etc/skel/Desktop/DebianMOSS\ Welcome.desktop
+ln -s /usr/share/applications/debianmoss-welcome.desktop /etc/skel/Desktop/DebianMOSS\ Welcome.desktop

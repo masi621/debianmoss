@@ -1,0 +1,186 @@
+#!/bin/bash
+set -Eeuo pipefail
+BRAND_DIR=/usr/share/calamares/branding/debianmoss
+INSTALLER_DESKTOP=/usr/share/applications/install-debian.desktop
+INSTALLER_ICON_HELPER=/usr/bin/add-calamares-desktop-icon
+POLKIT_ACTION=/usr/share/polkit-1/actions/com.github.calamares.calamares.policy
+rm -f \
+  /etc/polkit-1/rules.d/49-debianmoss-calamares.rules \
+  /usr/local/bin/moss-installer \
+  /usr/local/bin/moss-installer-launch \
+  /usr/share/applications/debianmoss-installer.desktop
+install -d "$BRAND_DIR"
+if [ -f /usr/share/pixmaps/debianmoss-logo.png ]; then
+  install -m 644 /usr/share/pixmaps/debianmoss-logo.png "$BRAND_DIR/logo.png"
+fi
+if [ -f /usr/share/backgrounds/debianmoss/tiles.png ]; then
+  install -m 644 /usr/share/backgrounds/debianmoss/tiles.png "$BRAND_DIR/welcome.png"
+fi
+cat > "$BRAND_DIR/branding.desc" <<'EOT'
+---
+componentName: debianmoss
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 800px,520px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+windowTitle: "Install DebianMOSS"
+styleSheet: "stylesheet.qss"
+strings:
+  productName:         DebianMOSS
+  shortProductName:    DebianMOSS
+  version:             "1.0"
+  shortVersion:        "1.0"
+  versionedName:       "DebianMOSS Installer"
+  shortVersionedName:  "DebianMOSS"
+  bootloaderEntryName: "DebianMOSS"
+  productUrl:          "https://github.com/masi621/debianmoss"
+  supportUrl:          "https://github.com/masi621/debianmoss/issues"
+  knownIssuesUrl:      "https://github.com/masi621/debianmoss/issues"
+  releaseNotesUrl:     "https://github.com/masi621/debianmoss"
+  donateUrl:           "https://github.com/masi621/debianmoss"
+images:
+  productLogo:                "logo.png"
+  productIcon:                "logo.png"
+  productWelcome:             "welcome.png"
+  productWelcomeFullscreen:   "welcome.png"
+slideshow: "show.qml"
+style:
+  sidebarBackground:   "#0a110d"
+  sidebarText:         "#eef7e5"
+  sidebarTextSelect:   "#7cff76"
+  sidebarTextHighlight: "#9de59c"
+slideshowAPI: 2
+EOT
+if grep -nE '^[[:space:]]*[A-Za-z][A-Za-z0-9_]*:"' "$BRAND_DIR/branding.desc" >/dev/null; then
+  echo "Invalid Calamares branding YAML: missing space after ':' in $BRAND_DIR/branding.desc" >&2
+  grep -nE '^[[:space:]]*[A-Za-z][A-Za-z0-9_]*:"' "$BRAND_DIR/branding.desc" >&2 || true
+  exit 1
+fi
+cat > "$BRAND_DIR/stylesheet.qss" <<'EOT'
+QWidget {
+  background-color: #0b120f;
+  color: #eaf7de;
+  font-size: 10pt;
+}
+QToolTip {
+  background: #101914;
+  color: #eef7e5;
+  border: 1px solid #3a5b48;
+}
+QPushButton {
+  background: #16231c;
+  color: #f4fff1;
+  border: 1px solid #3b604b;
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+QPushButton:hover {
+  background: #204030;
+  border-color: #7cff76;
+}
+QPushButton:disabled {
+  background: #141b17;
+  color: #839286;
+  border-color: #25322b;
+}
+QLineEdit, QComboBox, QListView, QTreeView, QTextEdit, QPlainTextEdit {
+  background: #101914;
+  color: #eef7e5;
+  border: 1px solid #2d4638;
+  border-radius: 6px;
+  padding: 4px 6px;
+  selection-background-color: #2f7f59;
+  selection-color: #f5fff2;
+}
+QHeaderView::section {
+  background: #142119;
+  color: #d8ebd3;
+  border: 0;
+  border-bottom: 1px solid #2d4638;
+  padding: 6px;
+}
+QProgressBar {
+  background: #101914;
+  color: #eef7e5;
+  border: 1px solid #2d4638;
+  border-radius: 6px;
+  text-align: center;
+}
+QProgressBar::chunk {
+  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2e7c58, stop:1 #7cff76);
+  border-radius: 6px;
+}
+EOT
+if [ -f /opt/debianmoss-assets/calamares-show.qml ]; then
+  install -m 644 /opt/debianmoss-assets/calamares-show.qml "$BRAND_DIR/show.qml"
+fi
+if [ -f /etc/calamares/settings.conf ]; then
+  if grep -q '^branding:' /etc/calamares/settings.conf; then
+    sed -i 's/^branding:.*/branding: debianmoss/' /etc/calamares/settings.conf
+  else
+    printf '\nbranding: debianmoss\n' >> /etc/calamares/settings.conf
+  fi
+  if ! grep -q '^  - shellprocess$' /etc/calamares/settings.conf; then
+    awk '
+      /^- exec:/ { in_exec=1 }
+      /^- show:/ { if (NR > 1) in_exec=0 }
+      in_exec && /^  - users$/ && !inserted {
+        print
+        print "  - shellprocess"
+        inserted=1
+        next
+      }
+      { print }
+    ' /etc/calamares/settings.conf > /etc/calamares/settings.conf.new
+    mv /etc/calamares/settings.conf.new /etc/calamares/settings.conf
+  fi
+fi
+if [ -f /etc/calamares/modules/packages.conf ] && ! grep -q "calamares'" /etc/calamares/modules/packages.conf; then
+  sed -i "/calamares-settings-debian/a\\      - 'calamares'" /etc/calamares/modules/packages.conf
+fi
+for f in /etc/calamares/modules/welcome.conf /etc/calamares/modules/welcome.conf.d/*.conf; do
+  [ -f "$f" ] || continue
+  sed -i -E \
+    -e 's/^(requiredStorageGiB:[[:space:]]*).*/\112/' \
+    -e 's/^(requiredStorage:[[:space:]]*).*/\112/' \
+    -e 's/^(requiredStorageMiB:[[:space:]]*).*/\112288/' \
+    "$f" || true
+done
+if [ -f "$INSTALLER_DESKTOP" ]; then
+  sed -i -E \
+    -e 's/^Name=.*/Name=Install DebianMOSS/' \
+    -e 's/^GenericName=.*/GenericName=DebianMOSS Installer/' \
+    -e 's/^Comment=.*/Comment=Install DebianMOSS to your hard drive/' \
+    -e 's/^Keywords=.*/Keywords=debianmoss;system;install;installer/' \
+    -e 's#^Icon=.*#Icon=/usr/share/pixmaps/debianmoss-logo.png#' \
+    -e 's#^Categories=.*#Categories=System;Settings;#' \
+    "$INSTALLER_DESKTOP"
+fi
+if [ -f "$INSTALLER_ICON_HELPER" ]; then
+  cat > "$INSTALLER_ICON_HELPER" <<'EOT'
+#!/bin/sh
+set -eu
+DESKTOP=$(xdg-user-dir DESKTOP 2>/dev/null || printf '%s\n' "$HOME/Desktop")
+DESKTOP=${DESKTOP:-"$HOME/Desktop"}
+mkdir -p "$DESKTOP"
+rm -f "$DESKTOP/install-debian.desktop" "$DESKTOP/Install DebianMOSS.desktop"
+ln -sfn /usr/share/applications/install-debian.desktop "$DESKTOP/install-debian.desktop"
+EOT
+  chmod 0755 "$INSTALLER_ICON_HELPER"
+fi
+if [ -f "$POLKIT_ACTION" ]; then
+  sed -i 's#<allow_active>auth_admin</allow_active>#<allow_active>yes</allow_active>#' "$POLKIT_ACTION"
+fi
+find /usr/share/applications -maxdepth 1 -type f -name '*.desktop' | while read -r f; do
+  [ "$f" = "$INSTALLER_DESKTOP" ] && continue
+  if grep -Eq '(^Exec=.*calamares|^Exec=.*install-debian|^Name=.*Install Debian|^Name=.*Debian GNU/Linux Installer)' "$f"; then
+    if grep -q '^NoDisplay=' "$f"; then
+      sed -i 's/^NoDisplay=.*/NoDisplay=true/' "$f"
+    else
+      printf '\nNoDisplay=true\n' >> "$f"
+    fi
+  fi
+done

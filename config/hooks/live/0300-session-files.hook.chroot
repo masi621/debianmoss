@@ -1,0 +1,15 @@
+#!/bin/bash
+set -Eeuo pipefail
+install -d /usr/share/xsessions /etc/skel/.config/debianmoss
+cat > /usr/share/xsessions/debianmoss.desktop <<'EOT'
+[Desktop Entry]
+Name=DebianMOSS
+Comment=DebianMOSS custom session
+Exec=/usr/local/bin/debianmoss-xsession
+Type=Application
+DesktopNames=DebianMOSS
+EOT
+cat > /etc/skel/.config/debianmoss/session <<'EOT'
+startxfce4
+EOT
+chmod 0644 /etc/skel/.config/debianmoss/session

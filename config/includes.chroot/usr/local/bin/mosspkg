@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+ROOT="$HOME/.local/share/mosspkg"
+SRC_DIR="$ROOT/src"
+BIN_DIR="$HOME/.local/bin"
+APP_DIR="$HOME/.local/share/applications"
+META_DIR="$ROOT/meta"
+mkdir -p "$SRC_DIR" "$BIN_DIR" "$APP_DIR" "$META_DIR"
+usage() {
+  cat <<'EOT'
+Usage:
+  mosspkg install <apt-package|github-url|local-path>
+  mosspkg remove <name>
+  mosspkg list
+  mosspkg search <query>
+  mosspkg info <name>
+EOT
+}
+need_cmd() {
+  local cmd="$1" hint="$2"
+  command -v "$cmd" >/dev/null 2>&1 || {
+    echo "Missing required command: $cmd" >&2
+    echo "$hint" >&2
+    exit 1
+  }
+}
+slugify() { basename "$1" | sed 's/\.git$//' | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9._-' '-'; }
+install_desktop_entries() {
+  local src="$1"
+  find "$src" -maxdepth 3 -type f -name '*.desktop' | while read -r f; do
+    install -Dm644 "$f" "$APP_DIR/$(basename "$f")"
+  done
+  if [[ -f "$src/mossapp.json" ]]; then
+    python3 - "$src/mossapp.json" "$APP_DIR" <<'PY'
+import json, sys, pathlib
+p = pathlib.Path(sys.argv[1]); outdir = pathlib.Path(sys.argv[2]); data = json.loads(p.read_text())
+name = data.get('name', 'mossapp'); exec_ = data.get('exec', name); icon = data.get('icon', 'utilities-terminal')
+term = str(data.get('terminal', False)).lower(); cat = data.get('categories', 'Utility;Development;')
+text = f"[Desktop Entry]\nType=Application\nName={name}\nExec={exec_}\nIcon={icon}\nTerminal={term}\nCategories={cat}\n"
+(outdir / f"{name.lower().replace(' ', '-')}.desktop").write_text(text)
+PY
+  fi
+}
+record_meta() { local name="$1" source="$2" path="$3"; cat > "$META_DIR/$name.env" <<EOT
+NAME=$name
+SOURCE=$source
+PATH_INSTALLED=$path
+EOT
+}
+build_and_install() {
+  local src="$1"
+  export PATH="$HOME/.local/bin:$PATH"
+  if [[ -f "$src/Cargo.toml" ]]; then
+    need_cmd cargo "Install the Rust toolchain first, or rebuild DebianMOSS with the dev package set."
+    cargo install --path "$src" --root "$HOME/.local"
+  elif [[ -f "$src/pyproject.toml" || -f "$src/setup.py" ]]; then
+    need_cmd python3 "Python 3 is required to build Python projects."
+    if command -v pipx >/dev/null 2>&1; then pipx install --force "$src"; else python3 -m pip install --user "$src"; fi
+  elif [[ -f "$src/CMakeLists.txt" ]]; then
+    need_cmd cmake "CMake is required to build CMake projects."
+    cmake -S "$src" -B "$src/build" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/.local"
+    cmake --build "$src/build" -j"$(nproc)"
+    cmake --install "$src/build"
+  elif [[ -f "$src/meson.build" ]]; then
+    need_cmd meson "Meson is required to build Meson projects."
+    meson setup "$src/build" "$src" --prefix "$HOME/.local"
+    meson compile -C "$src/build"
+    meson install -C "$src/build"
+  elif [[ -f "$src/Makefile" || -f "$src/makefile" ]]; then
+    need_cmd make "make is required to build Makefile-based projects."
+    make -C "$src" -j"$(nproc)"
+    if make -C "$src" -n install >/dev/null 2>&1; then
+      make -C "$src" PREFIX="$HOME/.local" install
+    else
+      candidate="$(find "$src" -maxdepth 2 -type f -perm -111 ! -path '*/build/*' | head -n1 || true)"
+      [[ -n "$candidate" ]] || { echo "No install target or executable found." >&2; exit 1; }
+      install -Dm755 "$candidate" "$BIN_DIR/$(basename "$candidate")"
+    fi
+  elif [[ -f "$src/package.json" ]]; then
+    need_cmd npm "Node.js and npm are required to build package.json projects."
+    npm install --prefix "$src"
+    npm install -g --prefix "$HOME/.local" "$src"
+  else
+    candidate="$(find "$src" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.py' -o -perm -111 \) | head -n1 || true)"
+    [[ -n "$candidate" ]] || { echo "Could not detect a supported build system." >&2; exit 1; }
+    install -Dm755 "$candidate" "$BIN_DIR/$(basename "$candidate")"
+  fi
+  install_desktop_entries "$src"
+}
+remove_meta_install() {
+  local name="$1"
+  local meta="$META_DIR/$name.env"
+  local path_installed="" meta_name="$name"
+  # shellcheck disable=SC1090
+  . "$meta"
+  path_installed="${PATH_INSTALLED:-}"
+  meta_name="${NAME:-$name}"
+  [[ -n "$path_installed" ]] && rm -rf -- "$path_installed"
+  rm -f -- "$meta"
+  find "$APP_DIR" -maxdepth 1 -type f -name "*${meta_name}*.desktop" -delete || true
+}
+cmd="${1:-}"
+case "$cmd" in
+  install)
+    target="${2:-}"; [[ -n "$target" ]] || { usage >&2; exit 1; }
+    if [[ "$target" =~ ^https://github\.com/ ]]; then
+      need_cmd git "git is required to install GitHub projects."
+      name="$(slugify "$target")"; work="$SRC_DIR/$name"; rm -rf "$work"; git clone --depth 1 "$target" "$work"; build_and_install "$work"; record_meta "$name" "$target" "$work"; echo "Installed GitHub project: $name"
+    elif [[ -d "$target" ]]; then
+      name="$(slugify "$target")"; build_and_install "$target"; record_meta "$name" "$target" "$target"; echo "Installed local project: $name"
+    else
+      exec sudo apt install -y "$target"
+    fi ;;
+  remove)
+    name="${2:-}"; [[ -n "$name" ]] || { usage >&2; exit 1; }
+    if [[ -f "$META_DIR/$name.env" ]]; then
+      remove_meta_install "$name"
+      echo "Removed local/source install metadata for $name"
+    else
+      exec sudo apt remove -y "$name"
+    fi ;;
+  list)
+    echo "APT packages: use apt list --installed"; echo; echo "mosspkg local/source installs:"; find "$META_DIR" -maxdepth 1 -type f -name '*.env' -printf '  %f\n' | sed 's/\.env$//' || true ;;
+  search) shift; exec apt-cache search "$*" ;;
+  info)
+    name="${2:-}"; [[ -n "$name" ]] || { usage >&2; exit 1; }
+    if [[ -f "$META_DIR/$name.env" ]]; then cat "$META_DIR/$name.env"; else exec apt-cache show "$name"; fi ;;
+  *) usage >&2; exit 1 ;;
+esac
